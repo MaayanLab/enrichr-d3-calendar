@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.bar rect {
+  fill: steelblue;
+  shape-rendering: crispEdges;
+}
+
+.bar text {
+  fill: #fff;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+// Generate a Bates distribution of 10 random variables.
+var values = d3.range(1000).map(d3.random.bates(10));
+
+// A formatter for counts.
+var formatCount = d3.format(",.0f");
+// spaces around
+var margin = {top: 10, right: 30, bottom: 30, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    // x range
+    .domain([0, 1])
+    // x scale
+    .range([0, width]);
+
+// number of bins
+var data = d3.layout.histogram()
+    .bins(x.ticks(20))
+    (values);
+
+var y = d3.scale.linear()
+    // y range
+    .domain([0, d3.max(data, function(d) { return d.y; })])
+    // y scale
+    .range([height, 0]);
+// direction of x scale
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var bar = svg.selectAll(".bar")
+    .data(data)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+// bars themselves
+bar.append("rect")
+    // label x position
+    .attr("x", 1)
+    // right gap
+    .attr("width", x(data[0].dx) - 1)
+    // cutline
+    .attr("height", function(d) { return height - y(d.y); });
+// bars text
+bar.append("text")
+    // label y positon
+    .attr("dy", ".75em")
+    // label y positon
+    .attr("y", 6)
+    // label x position
+    .attr("x", x(data[0].dx) / 2)
+    .attr("text-anchor", "middle")
+    .text(function(d) { return formatCount(d.y); });
+// x axis
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+</script>
